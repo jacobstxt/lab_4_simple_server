@@ -1,0 +1,25 @@
+{
+  "name": "lab_4",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "dev": "node --watch main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacobstxt/lab_4_simple_server.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacobstxt/lab_4_simple_server/issues"
+  },
+  "homepage": "https://github.com/jacobstxt/lab_4_simple_server#readme",
+  "dependencies": {
+    "commander": "^15.0.0"
+  }
+}
