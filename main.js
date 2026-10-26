@@ -22,10 +22,26 @@ if (!Number.isInteger(portNumber) || portNumber < 0 || portNumber > 65535) {
 }
 
 function sendJson(res, status, body) {
-  res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
-  res.end(JSON.stringify(body));
-}
+  const text = JSON.stringify(body);
 
+  const send = (code, payload) => {
+    res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(payload);
+  };
+
+  if (!output) {
+    send(status, text);
+    return;
+  }
+
+  fs.writeFile(output, text, (err) => {
+    if (err) {
+      send(500, JSON.stringify({ error: 'Не вдалося записати відповідь у вихідний файл' }));
+      return;
+    }
+    send(status, text);
+  });
+}
 
 function toNumber(value) {
   if (typeof value === 'number' && Number.isFinite(value)) {
