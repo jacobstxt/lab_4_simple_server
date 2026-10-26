@@ -26,6 +26,43 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+
+function toNumber(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value);
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+  return null;
+}
+
+function buildResult(records, showMfo, onlyNormal) {
+  const result = [];
+
+  for (const record of records) {
+    const stateCode = toNumber(record?.COD_STATE);
+
+    if (onlyNormal && stateCode !== 1) {
+      continue;
+    }
+
+    const item = {};
+    if (showMfo) {
+      item.mfo_code = toNumber(record?.MFO);
+    }
+    item.name = typeof record?.SHORTNAME === 'string' ? record.SHORTNAME : null;
+    item.state_code = stateCode;
+
+    result.push(item);
+  }
+
+  return result;
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -34,7 +71,32 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  sendJson(res, 200, { message: 'Сервер працює' }); 
+
+  const showMfo = url.searchParams.get('mfo') === 'true';
+  const onlyNormal = url.searchParams.get('normal') === 'true';
+
+  fs.readFile(input, 'utf8', (err, text) => {
+    if (err) {
+      sendJson(res, 500, { error: 'Не вдалося прочитати файл даних' });
+      return;
+    }
+
+    let records;
+    try {
+      records = JSON.parse(text);
+    } catch {
+      sendJson(res, 500, { error: 'Файл даних пошкоджено: це не коректний JSON' });
+      return;
+    }
+
+    if (!Array.isArray(records)) {
+      sendJson(res, 500, { error: 'Файл даних має містити JSON-масив' });
+      return;
+    }
+
+    const result = buildResult(records, showMfo, onlyNormal);
+    sendJson(res, 200, result);
+  });
 });
 
 server.on('error', (err) => {
